@@ -5,6 +5,8 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
 import org.mockito.*;
 import org.mockito.junit.jupiter.*;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,30 +21,38 @@ public class TestLibrary {
     @Mock
     Library mockLibrary;
 
+
+
     @BeforeEach
-    void init() { MockitoAnnotations.openMocks(this); }
+    void init() {
+        MockitoAnnotations.openMocks(this);
+        mockLibrary = new Library(mockDatabaseService, mockReviewService);
+    }
 
     @Test
     public void registerSuccessfullyUser_whenGetUser() {
         // 1. Arrange
-        // 1.1. Create an instance of WeatherService with mocks
-//        WeatherService weatherService = new WeatherService(mockWeatherApiClient, mockLogger, mockHistory);
+        Book book = new Book("978-3-16-148410-0", "Test Book", "Test Author");
+        String userId = "123456789012";
+
 
         // 1.2. Stubbing - Define behavior for mockApiClient
-//        when(mockWeatherApiClient.fetchWeather("Berlin")).thenReturn("Rainy");
+        when(mockDatabaseService.getBookByISBN(book.getISBN())).thenReturn(book);
+        when(mockDatabaseService.getUserById(userId)).thenReturn(new User("John Doe", userId, mock(NotificationService.class)));
+//
+//        // Act
 
         // 2. Action
         // 2.1. Call the method under test
-//        String forecast = weatherService.getWeatherForecast("Berlin");
+        mockLibrary.borrowBook(book.getISBN(), userId);
 
         // 3. Assertion
         // 3.1. Verify interactions
-//        verify(mockWeatherApiClient).fetchWeather("Berlin");
-//        verify(mockLogger).log("Weather data retrieved for Berlin");
-//        verify(mockLogger, never()).error(anyString());
-//        verify(mockHistory).add("Berlin");
+        verify(mockDatabaseService, times(1)).getBookByISBN(book.getISBN());
+        verify(mockDatabaseService, times(1)).getUserById(userId);
+        verify(mockDatabaseService, times(1)).borrowBook(book.getISBN(), userId);
 
         // 3.2. Assert the result
-//        assertEquals("Rainy", forecast);
+        assertTrue(book.isBorrowed());
     }
 }
