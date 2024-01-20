@@ -216,6 +216,7 @@ public class Library {
      *
      * @param ISBN The International Standard Book Number of the book.
      */
+    //gili
     public void returnBook(String ISBN) {
         
         // Validate the ISBN. If it's not valid, throw an exception.
@@ -250,6 +251,7 @@ public class Library {
      * @param ISBN The ISBN of the book whose reviews are to be sent.
      * @param userId The Id of the user to whom the reviews are to be sent.
      */
+    //gili
     public void notifyUserWithBookReviews(String ISBN, String userId) {
 
         // Validate the ISBN. If it's invalid, throw an exception.
@@ -322,6 +324,7 @@ public class Library {
      * @param userId The Id of the user to be notified with the book's reviews.
      * @return       The book with the given ISBN if found, and notifies the user with its reviews.
      */
+    // gili
     public Book getBookByISBN(String ISBN, String userId) {
         // Validate the ISBN. If it's invalid, throw an exception.
         if (!isISBNValid(ISBN)) {

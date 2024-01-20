@@ -8,6 +8,10 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.*;
 import org.mockito.junit.jupiter.*;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -448,4 +452,221 @@ public class TestLibrary {
 
     }
 
+
+    // Notify with book reviews
+
+    @Test
+    void notifyUserWithBookReviews_WhenISBNInvalid () {
+        // Arrange
+        String bookISBN = "12345";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        String userId = "123456789015";
+
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), userId));
+
+        // Verify interactions
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Invalid ISBN.", exception.getMessage());
+
+    }
+
+    @Test
+    void notifyUserWithBookReviews_WhenUserIdNull () {
+        // Arrange
+        String userId = null;
+        String bookISBN = "978-3-16-148410-0";
+
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockUser.getId()).thenReturn(userId);
+
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(bookISBN, mockUser.getId()));
+
+        // Verify interactions
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Invalid user Id.", exception.getMessage());
+
+    }
+
+    @Test
+    void notifyUserWithBookReviews_WhenBookNotFound () {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(null);
+
+        // Act and Assert
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Book not found!", exception.getMessage());
+
+    }
+
+    @Test
+    void notifyUserWithBookReviews_WhenUserNotFound () {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(null);
+
+        // Act and Assert
+        UserNotRegisteredException exception = assertThrows(UserNotRegisteredException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("User not found!", exception.getMessage());
+    }
+
+    @Test
+    void notifyUserWithBookReviews_WhenReviewsIsEmpty () {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+
+        // Act and Assert
+        NoReviewsFoundException exception = assertThrows(NoReviewsFoundException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
+        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
+        verify(mockReviewService, times(1)).close();
+
+        verifyNoMoreInteractions(mockDatabaseService);
+        verifyNoMoreInteractions(mockReviewService);
+
+        // Assert the result
+        assertEquals("No reviews found!", exception.getMessage());
+    }
+
+
+    @Test
+    void notifyUserWithBookReviews_WhenReviewsFetchingFails () {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService and mockReviewService
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenThrow(new ReviewException(""));
+
+        // Act and Assert
+        ReviewServiceUnavailableException exception = assertThrows(ReviewServiceUnavailableException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
+        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
+        verify(mockReviewService, times(1)).close();
+        verifyNoMoreInteractions(mockDatabaseService);
+        verifyNoMoreInteractions(mockReviewService);
+
+
+        // Assert the result
+        assertEquals("Review service unavailable!", exception.getMessage());
+    }
+
+//
+//    @Test
+//    void notifyUserWithBookReviews_AllAttemptsFail() {
+//        // Arrange
+//        String userId = "123456789015";
+//        String bookISBN = "978-3-16-148410-0";
+//        int maxAttempts = 5;
+//
+//        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
+//        when(mockUser.getId()).thenReturn(userId);
+//        when(mockBook.getISBN()).thenReturn(bookISBN);
+//        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+//        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+//        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
+//        when(mockUser.sendNotification(anyString()))
+//                .thenPrint(new NotificationException(""));
+//
+//        // Act and Assert
+//        NotificationException exception = assertThrows(NotificationException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+//
+//        // Verify interactions
+//        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+//        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
+//        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
+//        verify(mockReviewService, times(1)).close();
+//        verify(mockUser, times(maxAttempts)).sendNotification(anyString());
+//        verifyNoMoreInteractions(mockDatabaseService);
+//        verifyNoMoreInteractions(mockReviewService);
+//
+//        // Assert the result
+//        assertEquals("Notification failed!", exception.getMessage());
+//    }
+//
+//    @Test
+//    void notifyUserWithBookReviews_AllSucceed() {
+//        // Arrange
+//        String userId = "123456789015";
+//        String bookISBN = "978-3-16-148410-0";
+//        int maxAttempts = 5;
+//
+//        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
+//        when(mockUser.getId()).thenReturn(userId);
+//        when(mockBook.getISBN()).thenReturn(bookISBN);
+//        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+//        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+//        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
+//
+//        // Act and Assert
+//        NotificationException exception = assertThrows(NotificationException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+//
+//        // Verify interactions
+//        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+//        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
+//        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
+//        verify(mockReviewService, times(1)).close();
+//        verify(mockUser, times(1)).sendNotification(anyString());
+//        verifyNoMoreInteractions(mockDatabaseService);
+//        verifyNoMoreInteractions(mockReviewService);
+//
+//        // Assert the result
+//        assertNotEquals("Notification failed!", exception.getMessage());
+//    }
+//
+//    // Test for 2 failed and 1 success
+//    // Missing
+
+
+    //
 }
