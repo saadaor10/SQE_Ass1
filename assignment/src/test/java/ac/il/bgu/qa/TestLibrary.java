@@ -26,6 +26,7 @@ public class TestLibrary {
 
     @Mock
     NotificationService mockNotificationService;
+
     @Mock
     Library mockLibrary;
 
@@ -38,7 +39,8 @@ public class TestLibrary {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        mockLibrary = new Library(mockDatabaseService, mockReviewService);
+        mockLibrary = Mockito.spy(new Library(mockDatabaseService, mockReviewService));
+//        mockLibrary = new Library(mockDatabaseService, mockReviewService);
 //        mockBook = new Book("978-3-16-148410-0", "Test Book", "Test Author");
         mockBook = Mockito.mock(Book.class);
         mockUser = Mockito.mock(User.class);
@@ -668,5 +670,210 @@ public class TestLibrary {
 //    // Missing
 
 
-    //
+    //Return book
+
+    @Test
+    void returnBook_WhenISBNInvalid () {
+        // Arrange
+        String bookISBN = "12345";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.returnBook(mockBook.getISBN()));
+
+        // Verify interactions
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Invalid ISBN.", exception.getMessage());
+
+    }
+
+    @Test
+    void returnBook_WhenGetBookIsNull () {
+        // Arrange
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(null);
+
+        // Act and Assert
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> mockLibrary.returnBook(mockBook.getISBN()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Book not found!", exception.getMessage());
+
+    }
+
+    @Test
+    void returnBook_whenBookWasntBorrowed() {
+        // Arrange
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockBook.isBorrowed()).thenReturn(false);
+
+        // Act and Assert
+        BookNotBorrowedException exception =  assertThrows(BookNotBorrowedException.class,
+                () -> mockLibrary.returnBook(mockBook.getISBN()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Book wasn't borrowed!", exception.getMessage());
+    }
+
+    @Test
+    void returnBook_successfully() {
+        // Arrange
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockBook.isBorrowed()).thenReturn(true);
+
+        // Act and Assert
+        assertDoesNotThrow(() -> mockLibrary.returnBook(mockBook.getISBN()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(1)).returnBook(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+    }
+
+    // Test getBookByISBN functionality
+
+    @Test
+    void getBookByISBN_WhenISBNInvalid() {
+        // Arrange
+        String bookISBN = "12345";
+        String userId = "123456789015";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockUser.getId()).thenReturn(userId);
+
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Invalid ISBN.", exception.getMessage());
+    }
+
+
+    @Test
+    void getBookByISBN_WhenUserInvalid () {
+        // Arrange
+        String userId = "1234567890";
+        String bookISBN = "978-3-16-148410-0";
+
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockUser.getId()).thenReturn(userId);
+
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Invalid user Id.", exception.getMessage());
+    }
+
+    @Test
+    void getBookByISBN_WhenGetBookIsNull () {
+        // Arrange
+        String bookISBN = "978-3-16-148410-0";
+        String userId = "123456789015";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(null);
+
+        // Act and Assert
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Book not found!", exception.getMessage());
+
+    }
+
+    @Test
+    void getBookByISBN_whenBookAlreadyBorrowed() {
+        // Arrange
+        String userId = "123456789012";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockBook.isBorrowed()).thenReturn(true);
+
+        // Act and Assert
+        BookAlreadyBorrowedException exception =  assertThrows(BookAlreadyBorrowedException.class,
+                () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+        // Assert the result
+        assertEquals("Book was already borrowed!", exception.getMessage());
+    }
+
+    @Test
+    void getBookByISBN_successfully_whenNotificationFail() {
+        // Arrange
+        String userId = "123456789012";
+        String bookISBN = "978-3-16-148410-0";
+
+        // Stubbing - Define behavior for mockDatabaseService
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockBook.isBorrowed()).thenReturn(false);
+        doThrow(new NotificationException("Notification failed!"))
+                .when(mockLibrary).notifyUserWithBookReviews(bookISBN, userId);
+
+        // Act and Assert
+        Book returnedBook = mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId());
+
+
+        // Verify interactions
+        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
+        verifyNoMoreInteractions(mockDatabaseService);
+
+
+        // Assert the result
+        assertEquals(mockBook, returnedBook);
+    }
+
+
+
+
 }
