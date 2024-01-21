@@ -603,71 +603,75 @@ public class TestLibrary {
         assertEquals("Review service unavailable!", exception.getMessage());
     }
 
-//
-//    @Test
-//    void notifyUserWithBookReviews_AllAttemptsFail() {
-//        // Arrange
-//        String userId = "123456789015";
-//        String bookISBN = "978-3-16-148410-0";
-//        int maxAttempts = 5;
-//
-//        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
-//        when(mockUser.getId()).thenReturn(userId);
-//        when(mockBook.getISBN()).thenReturn(bookISBN);
-//        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
-//        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
-//        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
-//        when(mockUser.sendNotification(anyString()))
-//                .thenPrint(new NotificationException(""));
-//
-//        // Act and Assert
-//        NotificationException exception = assertThrows(NotificationException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
-//
-//        // Verify interactions
-//        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-//        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
-//        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
-//        verify(mockReviewService, times(1)).close();
-//        verify(mockUser, times(maxAttempts)).sendNotification(anyString());
-//        verifyNoMoreInteractions(mockDatabaseService);
-//        verifyNoMoreInteractions(mockReviewService);
-//
-//        // Assert the result
-//        assertEquals("Notification failed!", exception.getMessage());
-//    }
-//
-//    @Test
-//    void notifyUserWithBookReviews_AllSucceed() {
-//        // Arrange
-//        String userId = "123456789015";
-//        String bookISBN = "978-3-16-148410-0";
-//        int maxAttempts = 5;
-//
-//        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
-//        when(mockUser.getId()).thenReturn(userId);
-//        when(mockBook.getISBN()).thenReturn(bookISBN);
-//        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
-//        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
-//        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
-//
-//        // Act and Assert
-//        NotificationException exception = assertThrows(NotificationException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
-//
-//        // Verify interactions
-//        verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-//        verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
-//        verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
-//        verify(mockReviewService, times(1)).close();
-//        verify(mockUser, times(1)).sendNotification(anyString());
-//        verifyNoMoreInteractions(mockDatabaseService);
-//        verifyNoMoreInteractions(mockReviewService);
-//
-//        // Assert the result
-//        assertNotEquals("Notification failed!", exception.getMessage());
-//    }
-//
-//    // Test for 2 failed and 1 success
-//    // Missing
+
+    @Test
+    void notifyUserWithBookReviews_FailedNotificationAfter5Attempts(){
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+        int maxAttempts = 5;
+
+        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
+        doThrow(new NotificationException("Notification failed!"))
+                .when(mockUser).sendNotification(anyString());
+        // Act and Assert
+        assertThrows(NotificationException.class,
+                () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
+
+        // Verify that sendNotification was retried 5 times
+        verify(mockUser, times(maxAttempts)).sendNotification(anyString());
+    }
+
+
+    @Test
+    void notifyUserWithBookReviews_FailedNotificationAfter2AttemptsThenSuccessfulNotification() {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+        int maxAttempts = 5;
+
+        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
+        doThrow(new NotificationException("Notification failed!")).doThrow(new NotificationException("Notification failed!"))
+                .doNothing().when(mockUser).sendNotification(anyString());
+
+        // Act and Assert
+        mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId());
+
+        // Verify that sendNotification was retried 5 times
+        verify(mockUser, times(3)).sendNotification(anyString());
+    }
+
+    @Test
+    void notifyUserWithBookReviews_SuccessfulNotification() {
+        // Arrange
+        String userId = "123456789015";
+        String bookISBN = "978-3-16-148410-0";
+        int maxAttempts = 5;
+
+        // Stubbing - Define behavior for mockDatabaseService, mockReviewService, and mockUser
+        when(mockUser.getId()).thenReturn(userId);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
+        when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
+        when(mockDatabaseService.getUserById(mockUser.getId())).thenReturn(mockUser);
+        when(mockReviewService.getReviewsForBook(mockBook.getISBN())).thenReturn(List.of("Review A", "Review B"));
+        doNothing().when(mockUser).sendNotification(anyString());
+
+        // Act
+        mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId());
+
+        // Assert
+        verify(mockUser, times(1)).sendNotification(anyString());
+    }
 
 
     //Return book
