@@ -1,7 +1,7 @@
 package ac.il.bgu.qa;
 
 import ac.il.bgu.qa.errors.*;
-import ac.il.bgu.qa.services.*;;
+import ac.il.bgu.qa.services.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
 import org.junit.jupiter.api.function.Executable;
@@ -54,7 +54,7 @@ public class TestLibrary {
 
     //Test borrowBook functionality
     @Test
-    public void borrowBookSuccessfully_whenGetBookISBMAndUserID() {
+    public void givenSuccessfulBorrowBook_whenGetBookISBMAndUserID_thenNoExceptionThrown() {
         // 1. Arrange
         String userId = "123456789012";
 
@@ -80,7 +80,7 @@ public class TestLibrary {
     }
 
     @Test
-    void borrowBook_withIncorrectISBNAndUserID() {
+    void givenSuccessfulBorrowBook_withIncorrectISBNAndUserID_thenThrownExceptionInvalidISBN() {
         // Arrange
         String incorrectISBN = "1234567890123"; // Incorrect ISBN
         String userId = "123456789012";
