@@ -7,13 +7,15 @@ import org.junit.jupiter.api.extension.*;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.*;
 import org.mockito.junit.jupiter.*;
-
+import org.junit.jupiter.params.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+
 
 @ExtendWith(MockitoExtension.class)
 public class TestLibrary {
@@ -240,12 +242,13 @@ public class TestLibrary {
         String userId = "123456789015";
 
         // Stubbing - Define behavior for mockDatabaseService
+        when(mockUser.getId()).thenReturn(userId);
 
         // Act and Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(null));
 
         // Verify interactions
-        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
         verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
@@ -263,7 +266,7 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
         verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
@@ -284,7 +287,7 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
         verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
@@ -306,7 +309,7 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
         verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
