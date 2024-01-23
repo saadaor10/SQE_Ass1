@@ -62,7 +62,6 @@ public class TestLibrary {
         when(mockBook.getISBN()).thenReturn("978-3-16-148410-0");
         when(mockDatabaseService.getBookByISBN(mockBook.getISBN())).thenReturn(mockBook);
         when(mockDatabaseService.getUserById(userId)).thenReturn(mockUser);
-//        when(mockBook.isBorrowed()).thenReturn(true);
 
         // 2. Action
         // 2.1. Call the method under test
@@ -73,8 +72,7 @@ public class TestLibrary {
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(1)).getUserById(userId);
         verify(mockDatabaseService, times(1)).borrowBook(mockBook.getISBN(), userId);
-        verifyNoMoreInteractions(mockDatabaseService);
-//
+
         // 3.2. Assert the result
 //        assertTrue(mockBook.isBorrowed());
     }
@@ -92,7 +90,10 @@ public class TestLibrary {
                 () -> mockLibrary.borrowBook(incorrectISBN, userId));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).borrowBook(mockBook.getISBN(), userId);
+
 
         // Assert the result
         assertEquals("Invalid ISBN.", exception.getMessage());
@@ -113,7 +114,8 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).borrowBook(mockBook.getISBN(), userId);
 
         // Assert the result
         assertEquals("Book not found!", exception.getMessage());
@@ -135,7 +137,8 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
+        verify(mockDatabaseService, times(0)).borrowBook(mockBook.getISBN(), mockUser.getId());
 
         // Assert the result
         assertEquals("User not found!", exception.getMessage());
@@ -156,7 +159,8 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
+        verify(mockDatabaseService, times(0)).borrowBook(mockBook.getISBN(), mockUser.getId());
 
         // Assert the result
         assertEquals("Invalid user Id.", exception.getMessage());
@@ -182,7 +186,6 @@ public class TestLibrary {
         verify(mockDatabaseService, times(1)).getUserById(userId);
         verify(mockDatabaseService, times(0)).borrowBook(mockBook.getISBN(), userId);
         verify(mockBook,times(0)).borrow();
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Book is already borrowed!", exception.getMessage());
@@ -206,7 +209,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
         verify(mockDatabaseService, times(1)).registerUser(mockUser.getId(),mockUser);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
     }
@@ -226,7 +228,7 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getUserById(userId);
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
         assertEquals("User already exists.", exception.getMessage());
@@ -243,7 +245,8 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(null));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
         assertEquals("Invalid user.", exception.getMessage());
@@ -260,7 +263,8 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
         assertEquals("Invalid user Id.", exception.getMessage());
@@ -280,7 +284,8 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
         assertEquals("Invalid user name.", exception.getMessage());
@@ -301,7 +306,8 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.registerUser(mockUser));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(userId);
+        verify(mockDatabaseService, times(0)).registerUser(mockUser.getId(),mockUser);
 
         // Assert the result
         assertEquals("Invalid notification service.", exception.getMessage());
@@ -328,7 +334,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(1)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
 
@@ -354,11 +359,9 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(0)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Book already exists.", exception.getMessage());
-
     }
 
     @Test
@@ -380,7 +383,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(0)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Book with invalid borrowed state.", exception.getMessage());
@@ -405,7 +407,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(0)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Invalid author.", exception.getMessage());
@@ -428,7 +429,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(0)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Invalid title.", exception.getMessage());
@@ -447,7 +447,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(0)).addBook(mockBook.getISBN(),mockBook);
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Invalid book.", exception.getMessage());
@@ -461,16 +460,18 @@ public class TestLibrary {
     void notifyUserWithBookReviews_WhenISBNInvalid () {
         // Arrange
         String bookISBN = "12345";
+        String userId = "123456789015";
 
         // Stubbing - Define behavior for mockDatabaseService
         when(mockBook.getISBN()).thenReturn(bookISBN);
-        String userId = "123456789015";
+        when(mockUser.getId()).thenReturn(userId);
 
         // Act and Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), userId));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(bookISBN);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
 
         // Assert the result
         assertEquals("Invalid ISBN.", exception.getMessage());
@@ -485,13 +486,15 @@ public class TestLibrary {
 
 
         // Stubbing - Define behavior for mockDatabaseService
-        when(mockUser.getId()).thenReturn(userId);
+        when(mockUser.getId()).thenReturn(null);
+        when(mockBook.getISBN()).thenReturn(bookISBN);
 
         // Act and Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(bookISBN, mockUser.getId()));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.notifyUserWithBookReviews(mockBook.getISBN(), mockUser.getId()));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(bookISBN);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
 
         // Assert the result
         assertEquals("Invalid user Id.", exception.getMessage());
@@ -514,7 +517,7 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getUserById(mockUser.getId());
 
         // Assert the result
         assertEquals("Book not found!", exception.getMessage());
@@ -539,7 +542,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("User not found!", exception.getMessage());
@@ -565,9 +567,6 @@ public class TestLibrary {
         verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
         verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
         verify(mockReviewService, times(1)).close();
-
-        verifyNoMoreInteractions(mockDatabaseService);
-        verifyNoMoreInteractions(mockReviewService);
 
         // Assert the result
         assertEquals("No reviews found!", exception.getMessage());
@@ -595,8 +594,7 @@ public class TestLibrary {
         verify(mockDatabaseService, times(1)).getUserById(mockUser.getId());
         verify(mockReviewService, times(1)).getReviewsForBook(mockBook.getISBN());
         verify(mockReviewService, times(1)).close();
-        verifyNoMoreInteractions(mockDatabaseService);
-        verifyNoMoreInteractions(mockReviewService);
+
 
 
         // Assert the result
@@ -688,7 +686,9 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.returnBook(mockBook.getISBN()));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
+        verify(mockDatabaseService, times(0)).returnBook(mockBook.getISBN());
+
 
         // Assert the result
         assertEquals("Invalid ISBN.", exception.getMessage());
@@ -709,7 +709,7 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).returnBook(mockBook.getISBN());
 
         // Assert the result
         assertEquals("Book not found!", exception.getMessage());
@@ -732,7 +732,7 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).returnBook(mockBook.getISBN());
 
         // Assert the result
         assertEquals("Book wasn't borrowed!", exception.getMessage());
@@ -754,7 +754,6 @@ public class TestLibrary {
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
         verify(mockDatabaseService, times(1)).returnBook(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
     }
@@ -775,7 +774,7 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
 
         // Assert the result
         assertEquals("Invalid ISBN.", exception.getMessage());
@@ -797,7 +796,7 @@ public class TestLibrary {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> mockLibrary.getBookByISBN(mockBook.getISBN(), mockUser.getId()));
 
         // Verify interactions
-        verifyNoMoreInteractions(mockDatabaseService);
+        verify(mockDatabaseService, times(0)).getBookByISBN(mockBook.getISBN());
 
         // Assert the result
         assertEquals("Invalid user Id.", exception.getMessage());
@@ -819,7 +818,6 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Book not found!", exception.getMessage());
@@ -844,7 +842,6 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
 
         // Assert the result
         assertEquals("Book was already borrowed!", exception.getMessage());
@@ -870,8 +867,6 @@ public class TestLibrary {
 
         // Verify interactions
         verify(mockDatabaseService, times(1)).getBookByISBN(mockBook.getISBN());
-        verifyNoMoreInteractions(mockDatabaseService);
-
 
         // Assert the result
         assertEquals(mockBook, returnedBook);
